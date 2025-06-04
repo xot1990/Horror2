@@ -9,6 +9,7 @@ public class LightSwitch : MonoBehaviour
 		public bool open;
 		public Transform Player;
 		public List<Light> LightPool;
+		public bool isUse;
 
 		void Start()
 		{
@@ -54,6 +55,11 @@ public class LightSwitch : MonoBehaviour
 			SwitchAnimator.Play("On");
 			open = true;
 			yield return new WaitForSeconds(.5f);
+			if (!isUse)
+			{
+				isUse = true;
+				QuestEventBus.GetDoneAction("LightOn");
+			}
 			foreach (var L in LightPool)
 			{
 				L.intensity = 1;

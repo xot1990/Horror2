@@ -64,8 +64,8 @@ public class QuestUiElement : MonoBehaviour
 
     private void DoneQuest(Quest Q)
     {
-        Debug.Log(Q == quest);
-        if(Q == quest)
+        
+        if(Q.Name == quest.Name)
             _animator.Play("Done");
     }
 
