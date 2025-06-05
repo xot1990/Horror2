@@ -12,7 +12,7 @@ public class QuestDoneArea : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             QuestEventBus.GetDoneAction(quest.Name);
-            Destroy(gameObject);
+            gameObject.SetActive(false);
         }
     }
 

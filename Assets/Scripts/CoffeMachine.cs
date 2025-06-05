@@ -20,7 +20,7 @@ public class CoffeMachine : MonoBehaviour
 				if (Player)
 				{
 					float dist = Vector3.Distance(Player.position, transform.position);
-					if (dist < 15)
+					if (dist < 2)
 					{
 						if (open == false)
 						{
@@ -36,8 +36,8 @@ public class CoffeMachine : MonoBehaviour
 							if (Input.GetMouseButtonDown(0))
 							{
 								open = false;
-								Psys1.Play();
-								Psys2.Play();
+								Psys1.Stop();
+								Psys2.Stop();
 							}
 
 						}

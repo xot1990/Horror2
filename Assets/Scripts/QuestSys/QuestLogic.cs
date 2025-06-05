@@ -6,6 +6,7 @@ using UnityEngine;
 public class QuestLogic : MonoBehaviour
 {
     private List<Quest> _quests = new();
+    public List<QuestDoneArea> Areas = new();
     private delegate bool CheckQuest(ref float target,float value);
 
     private CheckQuest Quest;
@@ -30,34 +31,35 @@ public class QuestLogic : MonoBehaviour
 
     private void ObserveTimeEvent()
     {
-        foreach (var q in _quests)
+        for (int i = 0; i < _quests.Count; i++)
         {
-            if (q.questType == global::Quest.QuestType.Time)
+            if (_quests[i].questType == global::Quest.QuestType.Time)
             {
                 Enemy E = null;
-                q.Done(E);
+                _quests[i].Done(E);
             }
         }
     }
     
     private void ObserveActionEvent(string T)
     {
-        foreach (var q in _quests)
+        for (int i = 0; i < _quests.Count; i++)
         {
-            if (q.questType == global::Quest.QuestType.Action)
+            if (_quests[i].questType == global::Quest.QuestType.Action)
             {
-                q.Done(T);
+                _quests[i].Done(T);
             }
         }
+        
     }
     
     private void ObserveKillEvent(Enemy enemy)
     {
-        foreach (var q in _quests)
+        for (int i = 0; i < _quests.Count; i++)
         {
-            if (q.questType == global::Quest.QuestType.Kill)
+            if (_quests[i].questType == global::Quest.QuestType.Kill)
             {
-                q.Done(enemy);
+                _quests[i].Done(enemy);
             }
         }
     }
@@ -65,13 +67,21 @@ public class QuestLogic : MonoBehaviour
     private void QuestDone(Quest Q)
     {
         _quests.Remove(_quests.Find(X => X.Name == Q.Name));
-        _quests.Add(Q.NextQuest?.CreateQuest());
-        QuestEventBus.GetFillQuests(_quests);
+        StartQuest(Q.NextQuest);
     }
 
     private void StartQuest(QuestData Q)
     {
-        _quests.Add(Q.CreateQuest());
+        global::Quest q = Q.CreateQuest();
+        _quests.Add(q);
+        
+        QuestDoneArea area = Areas.Find(X => X.quest == Q);
+
+        if (area != null)
+        {
+            area.gameObject.SetActive(true);
+        }
+        
         QuestEventBus.GetFillQuests(_quests);
     }
 }
