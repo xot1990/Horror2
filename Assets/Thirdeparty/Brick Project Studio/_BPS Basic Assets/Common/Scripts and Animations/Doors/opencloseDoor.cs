@@ -1,72 +1,45 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace SojaExiles
-
 {
-	public class opencloseDoor : MonoBehaviour
-	{
+    public class OpenCloseDoor : MonoBehaviour
+    {
+        public Animator openandclose;
+        public bool open;
+        public bool isCanUse;
 
-		public Animator openandclose;
-		public bool open;
-		public Transform Player;
+        void Start()
+        {
+            open = false;
+        }
 
-		void Start()
-		{
-			open = false;
-		}
+        public void Use()
+        {
+            if (open)
+            {
+                StartCoroutine(closing());
+            }
+            else
+            {
+                StartCoroutine(opening());
+            }
+        }
 
-		void OnMouseOver()
-		{
-			{
-				if (Player)
-				{
-					float dist = Vector3.Distance(Player.position, transform.position);
-					if (dist < 15)
-					{
-						if (open == false)
-						{
-							if (Input.GetMouseButtonDown(0))
-							{
-								StartCoroutine(opening());
-							}
-						}
-						else
-						{
-							if (open == true)
-							{
-								if (Input.GetMouseButtonDown(0))
-								{
-									StartCoroutine(closing());
-								}
-							}
+        IEnumerator opening()
+        {
+            Debug.Log("You are opening the door");
+            if (openandclose != null) openandclose.Play("Opening");
+            open = true;
+            yield return new WaitForSeconds(0.5f);
+        }
 
-						}
-
-					}
-				}
-
-			}
-
-		}
-
-		IEnumerator opening()
-		{
-			print("you are opening the door");
-			openandclose.Play("Opening");
-			open = true;
-			yield return new WaitForSeconds(.5f);
-		}
-
-		IEnumerator closing()
-		{
-			print("you are closing the door");
-			openandclose.Play("Closing");
-			open = false;
-			yield return new WaitForSeconds(.5f);
-		}
-
-
-	}
+        IEnumerator closing()
+        {
+            Debug.Log("You are closing the door");
+            if (openandclose != null) openandclose.Play("Closing");
+            open = false;
+            yield return new WaitForSeconds(0.5f);
+        }
+    }
 }

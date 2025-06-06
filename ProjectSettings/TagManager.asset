@@ -5,6 +5,10 @@ TagManager:
   serializedVersion: 2
   tags:
   - CinemachineTarget
+  - CoffeeMachine
+  - Lid
+  - Door
+  - Cup
   layers:
   - Default
   - TransparentFX
