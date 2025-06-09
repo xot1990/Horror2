@@ -12,6 +12,12 @@ public static class QuestEventBus
     public static Action<QuestData> startQuest;
     public static Action<Quest> doneQuest;
     public static Action<string> doneAction;
+    public static Action spawnNPC;
+
+    public static void GetSpawnNPC()
+    {
+        spawnNPC?.Invoke();
+    }
 
     public static void GetStartQuest(QuestData Q)
     {

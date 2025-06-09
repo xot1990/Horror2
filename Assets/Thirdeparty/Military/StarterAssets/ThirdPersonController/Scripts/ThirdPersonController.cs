@@ -420,10 +420,7 @@ namespace StarterAssets
                 GameObject targetObject = hitObject;
 
                 // Проверяем, есть ли родитель у объекта
-                if (hitObject.transform.parent != null)
-                {
-                    targetObject = hitObject.transform.parent.gameObject;
-                }
+                
 
                 float dist = Vector3.Distance(transform.position, targetObject.transform.position);
 
@@ -431,22 +428,43 @@ namespace StarterAssets
                 if (targetObject.CompareTag("Cup") || targetObject.CompareTag("Lid"))
                 {
                     isInteractable = true;
-                    _targetObject = targetObject;
+                    CheckPerent("Cup");
+                    CheckPerent("Lid");
                 }
                 else if (targetObject.CompareTag("CoffeeMachine") && dist < 2f)
                 {
                     isInteractable = true;
-                    _targetObject = targetObject;
+                    CheckPerent("CoffeeMachine");
                 }
                 else if (targetObject.CompareTag("Door") && dist < 3f)
                 {
                     isInteractable = true;
-                    _targetObject = targetObject;
+                    CheckPerent("Door");
+                }
+                else if (targetObject.CompareTag("SwitchLight") && dist < 3f)
+                {
+                    isInteractable = true;
+                    CheckPerent("SwitchLight");
                 }
                 else
                 {
                     Debug.Log($"Raycast hit: {hitObject.name}, Target: {targetObject.name}, Tag: {targetObject.tag}, Not interactable");
                 }
+
+                void CheckPerent(string tag)
+                {
+                    if (targetObject.transform.parent != null)
+                    {
+                        if(targetObject.transform.parent.CompareTag(tag))
+                            _targetObject = targetObject.transform.parent.gameObject;
+                        else
+                        {
+                            _targetObject = targetObject;
+                        }
+                    }
+                }
+                
+                
             }
             else
             {
@@ -627,6 +645,20 @@ namespace StarterAssets
                         if (doorScript != null)
                         {
                             Debug.Log("Calling OpenCloseDoor.Use");
+                            doorScript.Use();
+                        }
+                    }
+                }
+                else if (_targetObject.CompareTag("SwitchLight"))
+                {
+                    float dist = Vector3.Distance(transform.position, _targetObject.transform.position);
+                    Debug.Log($"SwitchLight: {dist}");
+                    if (dist < 3f)
+                    {
+                        var doorScript = _targetObject.GetComponent<LightSwitch>();
+                        if (doorScript != null)
+                        {
+                            Debug.Log("Calling SwitchLight.Use");
                             doorScript.Use();
                         }
                     }

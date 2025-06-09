@@ -22,4 +22,6 @@ public class Crosshair : MonoBehaviour
             crosshairImage.color = isActive ? activeColor : inactiveColor;
         }
     }
+    
+    
 }

@@ -1,5 +1,6 @@
 using UnityEngine;
 #if ENABLE_INPUT_SYSTEM
+using System.Collections;
 using UnityEngine.InputSystem;
 #endif
 
@@ -37,7 +38,15 @@ namespace StarterAssets
         
         public void OnPush(InputValue value)
         {
+            StopAllCoroutines();
             push = value.isPressed;
+            StartCoroutine(StartPush());
+        }
+
+        public IEnumerator StartPush()
+        {
+            yield return new WaitForSeconds(0.3f);
+            push = false;
         }
 
         public void OnLook(InputValue value)

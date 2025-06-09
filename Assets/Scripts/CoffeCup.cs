@@ -162,7 +162,7 @@ public class CoffeeFillSingleParticle : MonoBehaviour
 
         isLidded = true;
         lid.transform.SetParent(transform); // Прикрепляем крышечку к стаканчику
-        lid.transform.localPosition = new Vector3(0, 0, lid.transform.position.z); // Позиция над стаканчиком по Z
+        lid.transform.localPosition = new Vector3(0, 0, lid.transform.localPosition.z); // Позиция над стаканчиком по Z
         lid.transform.localRotation = Quaternion.identity; // Сбрасываем вращение
 
         // Отключаем физику и возможность взаимодействия

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
@@ -8,9 +9,15 @@ public class QuestData : ScriptableObject
     public string Name;
     public string Discription;
     public QuestData nextQuest;
+    public Action action;
     
     public virtual Quest CreateQuest()
     {
         return new Quest(this);
+    }
+    
+    public virtual void ActionQuest()
+    {
+       
     }
 }

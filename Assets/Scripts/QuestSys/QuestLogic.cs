@@ -74,6 +74,7 @@ public class QuestLogic : MonoBehaviour
     {
         global::Quest q = Q.CreateQuest();
         _quests.Add(q);
+        Q.ActionQuest();
         
         QuestDoneArea area = Areas.Find(X => X.quest == Q);
 
