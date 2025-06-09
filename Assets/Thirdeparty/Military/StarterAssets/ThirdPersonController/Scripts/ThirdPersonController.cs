@@ -333,11 +333,41 @@ namespace StarterAssets
         {
             if (_heldObject != null)
             {
-                // Позиция перед персонажем
-                Vector3 targetPosition = transform.position + transform.forward * holdDistance;
-                targetPosition.y = transform.position.y + holdHeightOffset; // Высота на уровне груди
-                _heldObject.transform.position = Vector3.Lerp(_heldObject.transform.position, targetPosition, Time.deltaTime * 10f);
-                _heldObject.transform.rotation = Quaternion.identity; // Сбрасываем вращение для естественного вида
+                if (_mainCamera == null)
+                {
+                    Debug.LogError("MainCamera is null! Cannot position held object.");
+                    return;
+                }
+
+                // Raycast из камеры для определения точки, куда смотрит курсор
+                Ray ray = new Ray(_mainCamera.transform.position, _mainCamera.transform.forward);
+                Vector3 targetPosition = ray.origin + ray.direction * holdDistance; // Позиция в центре экрана на расстоянии holdDistance
+
+                // Используем Rigidbody для физического перемещения
+                var rb = _heldObject.GetComponent<Rigidbody>();
+                if (rb != null)
+                {
+                    // Вычисляем вектор к целевой позиции
+                    Vector3 direction = targetPosition - _heldObject.transform.position;
+                    float distance = direction.magnitude;
+
+                    // Применяем силу для перемещения
+                    float forceMagnitude = 50f * distance; // Пропорционально расстоянию
+                    rb.AddForce(direction.normalized * forceMagnitude, ForceMode.Acceleration);
+
+                    // Демпфируем скорость для плавности
+                    rb.velocity *= 0.9f; // Уменьшаем скорость на 10% за кадр
+                    rb.angularVelocity *= 0.9f; // Демпфируем вращение
+
+                    // Лёгкое вращение для эффекта "живости"
+                    rb.AddTorque(Random.insideUnitSphere * 0.5f, ForceMode.Acceleration);
+
+                    Debug.Log($"Holding: {_heldObject.name}, Position: {_heldObject.transform.position}, Target: {targetPosition}, Velocity: {rb.velocity}");
+                }
+                else
+                {
+                    Debug.LogError($"No Rigidbody on {_heldObject.name}!");
+                }
             }
         }
 
@@ -354,7 +384,6 @@ namespace StarterAssets
             {
                 GameObject hitObject = hit.collider.gameObject;
                 float dist = Vector3.Distance(transform.position, hitObject.transform.position);
-                Debug.Log($"Raycast hit: {hitObject.name}, Tag: {hitObject.tag}, Distance: {dist}");
 
                 if (hitObject.CompareTag("Cup") || hitObject.CompareTag("Lid"))
                 {
@@ -389,105 +418,185 @@ namespace StarterAssets
         }
 
         private void HandleInteraction()
+{
+ 
+    if (_input == null)
+    {
+        Debug.LogError("StarterAssetsInputs component is null!");
+        return;
+    }
+
+    // Подбор или отпускание объекта (Interact)
+    if (_input.interact)
+    {
+        if (_heldObject == null && _targetObject != null)
         {
-            // Подбор/отпускание объекта (Interact)
-            if (_input.interact && _targetObject != null)
+            if (_targetObject.CompareTag("Cup") || _targetObject.CompareTag("Lid"))
             {
-                if (_heldObject == null && (_targetObject.CompareTag("Cup") || _targetObject.CompareTag("Lid")))
+                // Подбираем объект
+                Debug.Log($"Attempting to pick up: {_targetObject.name}");
+                _heldObject = _targetObject;
+
+                // Проверяем наличие коллайдера
+                var collider = _heldObject.GetComponent<Collider>();
+                if (collider == null)
                 {
-                    // Пытаемся подобрать объект
-                    _heldObject = _targetObject;
-                    if (_heldObject.CompareTag("Cup"))
+                    Debug.LogError($"No Collider on {_heldObject.name}! Cannot pick up.");
+                    _heldObject = null;
+                    return;
+                }
+                collider.enabled = true; // Убедимся, что коллайдер включён
+
+                // Настраиваем Rigidbody
+                var rb = _heldObject.GetComponent<Rigidbody>();
+                if (rb == null)
+                {
+                    Debug.Log($"Adding Rigidbody to {_heldObject.name}");
+                    rb = _heldObject.AddComponent<Rigidbody>();
+                }
+                rb.useGravity = false; // Отключаем гравитацию для "зависания"
+                rb.drag = 5f; // Плавность движения
+                rb.angularDrag = 5f; // Плавность вращения
+
+                // Вызываем PickUp для Cup
+                if (_heldObject.CompareTag("Cup"))
+                {
+                    var cupScript = _heldObject.GetComponent<CoffeeFillSingleParticle>();
+                    if (cupScript != null)
                     {
-                        var cupScript = _heldObject.GetComponent<CoffeeFillSingleParticle>();
-                        if (cupScript != null)
+                        Debug.Log("Calling Cup.PickUp");
+                        try
                         {
                             cupScript.PickUp();
                         }
-                    }
-                    else // Lid
-                    {
-                        var lidCollider = _heldObject.GetComponent<Collider>();
-                        if (lidCollider != null) lidCollider.enabled = false;
-                        var lidRigidbody = _heldObject.GetComponent<Rigidbody>();
-                        if (lidRigidbody == null)
+                        catch (System.Exception e)
                         {
-                            lidRigidbody = _heldObject.AddComponent<Rigidbody>();
-                        }
-                        lidRigidbody.isKinematic = true;
-                    }
-                }
-                else if (_heldObject != null)
-                {
-                    // Отпускаем объект
-                    if (_heldObject.CompareTag("Cup"))
-                    {
-                        var cupScript = _heldObject.GetComponent<CoffeeFillSingleParticle>();
-                        if (cupScript != null)
-                        {
-                            cupScript.Drop();
+                            Debug.LogError($"Error in Cup.PickUp: {e.Message}");
                         }
                     }
-                    else // Lid
+                    else
                     {
-                        var lidCollider = _heldObject.GetComponent<Collider>();
-                        if (lidCollider != null) lidCollider.enabled = true;
-                        var lidRigidbody = _heldObject.GetComponent<Rigidbody>();
-                        if (lidRigidbody != null) lidRigidbody.isKinematic = false;
+                        Debug.LogWarning($"No CoffeeFillSingleParticle on {_heldObject.name}");
                     }
-                    _heldObject = null;
                 }
-                _input.interact = false; // Сбрасываем ввод
             }
-
-            // Использование объекта (Use)
-            if (_input.use && _targetObject != null)
+            else
             {
-                if (_heldObject != null && _heldObject.CompareTag("Cup"))
-                {
-                    // Проверяем, есть ли крышечка перед персонажем
-                    GameObject heldLid = null;
-                    if (_heldObject.CompareTag("Lid"))
-                    {
-                        heldLid = _heldObject;
-                    }
-                    if (heldLid != null)
-                    {
-                        var cupScript = _targetObject.GetComponent<CoffeeFillSingleParticle>();
-                        if (cupScript != null)
-                        {
-                            cupScript.PlaceLid(heldLid);
-                            _heldObject = null; // Очищаем удерживаемый объект
-                        }
-                    }
-                }
-                else if (_targetObject.CompareTag("CoffeeMachine"))
-                {
-                    float dist = Vector3.Distance(transform.position, _targetObject.transform.position);
-                    if (dist < 2f)
-                    {
-                        var machineScript = _targetObject.GetComponent<CoffeeMachine>();
-                        if (machineScript != null)
-                        {
-                            machineScript.Use();
-                        }
-                    }
-                }
-                else if (_targetObject.CompareTag("Door"))
-                {
-                    float dist = Vector3.Distance(transform.position, _targetObject.transform.position);
-                    if (dist < 3f)
-                    {
-                        var doorScript = _targetObject.GetComponent<SojaExiles.OpenCloseDoor>();
-                        if (doorScript != null)
-                        {
-                            doorScript.Use();
-                        }
-                    }
-                }
-                _input.use = false; // Сбрасываем ввод
+                Debug.Log($"Cannot pick up {_targetObject.name}: Invalid tag ({_targetObject.tag})");
             }
         }
+        else if (_heldObject != null)
+        {
+            // Отпускаем объект
+            Debug.Log($"Dropping: {_heldObject.name}");
+            if (_heldObject.CompareTag("Cup"))
+            {
+                var cupScript = _heldObject.GetComponent<CoffeeFillSingleParticle>();
+                if (cupScript != null)
+                {
+                    Debug.Log("Calling Cup.Drop");
+                    try
+                    {
+                        cupScript.Drop();
+                    }
+                    catch (System.Exception e)
+                    {
+                        Debug.LogError($"Error in Cup.Drop: {e.Message}");
+                    }
+                }
+            }
+
+            // Восстанавливаем физику
+            var rb = _heldObject.GetComponent<Rigidbody>();
+            if (rb != null)
+            {
+                rb.useGravity = true;
+                rb.drag = 0f;
+                rb.angularDrag = 0.05f; // Стандартное значение
+            }
+            var collider = _heldObject.GetComponent<Collider>();
+            if (collider != null)
+            {
+                collider.enabled = true;
+            }
+            _heldObject = null;
+        }
+        else
+        {
+            Debug.Log("No valid target to pick up");
+        }
+        _input.interact = false; // Сбрасываем ввод
+    }
+
+    // Использование объекта (Use)
+    if (_input.use && _targetObject != null)
+    {
+        Debug.Log($"Use action triggered on: {_targetObject.name}");
+        if (_heldObject != null && _heldObject.CompareTag("Cup"))
+        {
+            // Проверяем, есть ли крышечка перед персонажем
+            GameObject heldLid = null;
+            if (_targetObject.CompareTag("Lid"))
+            {
+                heldLid = _targetObject;
+            }
+            if (heldLid != null)
+            {
+                var cupScript = _heldObject.GetComponent<CoffeeFillSingleParticle>();
+                if (cupScript != null)
+                {
+                    Debug.Log("Placing Lid on Cup");
+                    try
+                    {
+                        cupScript.PlaceLid(heldLid);
+                        _heldObject = null;
+                    }
+                    catch (System.Exception e)
+                    {
+                        Debug.LogError($"Error in Cup.PlaceLid: {e.Message}");
+                    }
+                }
+            }
+        }
+        else if (_targetObject.CompareTag("CoffeeMachine"))
+        {
+            float dist = Vector3.Distance(transform.position, _targetObject.transform.position);
+            Debug.Log($"CoffeeMachine distance: {dist}");
+            if (dist < 2f)
+            {
+                var machineScript = _targetObject.GetComponent<CoffeeMachine>();
+                if (machineScript != null)
+                {
+                    Debug.Log("Calling CoffeeMachine.Use");
+                    machineScript.Use();
+                }
+                else
+                {
+                    Debug.LogError("CoffeeMachine script not found on target object!");
+                }
+            }
+            else
+            {
+                Debug.Log($"CoffeeMachine too far: {dist} meters");
+            }
+        }
+        else if (_targetObject.CompareTag("Door"))
+        {
+            float dist = Vector3.Distance(transform.position, _targetObject.transform.position);
+            Debug.Log($"Door distance: {dist}");
+            if (dist < 3f)
+            {
+                var doorScript = _targetObject.GetComponent<SojaExiles.OpenCloseDoor>();
+                if (doorScript != null)
+                {
+                    Debug.Log("Calling OpenCloseDoor.Use");
+                    doorScript.Use();
+                }
+            }
+        }
+        _input.use = false; // Сбрасываем ввод
+    }
+}
 
         private static float ClampAngle(float lfAngle, float lfMin, float lfMax)
         {
