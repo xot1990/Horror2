@@ -2,20 +2,24 @@ using UnityEngine;
 
 public class CoffeeFillSingleParticle : MonoBehaviour
 {
-    public ParticleSystem liquidSurface; // Particle System для поверхности жидкости
+    public Transform bottomObject; // Объект дна, также представляющий поверхность жидкости
     public float fillSpeed = 0.001f; // Скорость наполнения за частицу
     public float maxHeight; // Максимальная высота жидкости (по оси Z)
-    public float overflowSpeed = 2f; // Скорость частиц при переливании
-    public float stopOverflowDelay = 0.5f; // Задержка перед остановкой переливания
+    public float minHeight = 0f; // Минимальная высота жидкости (по оси Z)
+    public float spillSpeed = 0.002f; // Скорость уменьшения высоты при проливании
+    public float spillAngleThreshold = 30f; // Порог угла наклона для проливания (градусы)
+    public float startScale = 0.00202f; // Стартовый масштаб дна
+    public float maxScale = 0.00288f; // Масштаб дна при полном заполнении
     private float currentHeight = 0f; // Текущий уровень жидкости (по оси Z)
-    private bool isOverflowing = false;
-    private float lastParticleHitTime; // Время последнего попадания частицы
-    private bool isReceivingParticles = false;
-    private bool isStarted = false; // Флаг для активации Particle System
+    private bool isStarted = false; // Флаг для активации поверхности
     private bool isPickedUp = false; // Флаг, что стаканчик поднят
     private bool isLidded = false; // Флаг, что крышечка установлена
     private Collider cupCollider; // Коллайдер стаканчика
-    private Rigidbody cupRigidbody; // Rigidbody для отключения физики при подборе
+    private Rigidbody cupRigidbody; // Rigidbody стаканчика
+    private MeshRenderer bottomRenderer; // MeshRenderer дна
+    private readonly Vector3 verticalEulerAngles = new Vector3(-90f, 0f, 0f); // Вертикальное положение стакана
+
+    public float FillLevel => currentHeight / maxHeight; // Показатель заполненности (0–1)
 
     void Start()
     {
@@ -24,18 +28,30 @@ public class CoffeeFillSingleParticle : MonoBehaviour
         if (cupRigidbody == null)
         {
             cupRigidbody = gameObject.AddComponent<Rigidbody>();
-            cupRigidbody.isKinematic = true; // Изначально без физики
         }
-        if (liquidSurface != null)
+        if (bottomObject == null)
         {
-            liquidSurface.Stop(); // Изначально выключаем Particle System
-            var emission = liquidSurface.emission;
-            emission.rateOverTime = 50; // Начальная эмиссия
-            var collision = liquidSurface.collision;
-            collision.enabled = true; // Коллизия для удержания частиц
-            var force = liquidSurface.forceOverLifetime;
-            force.enabled = false; // Сила для переливания выключена
-            lastParticleHitTime = Time.time;
+            Debug.LogError("Bottom object is not assigned in the inspector!");
+        }
+        else
+        {
+            // Получаем MeshRenderer и изначально выключаем
+            bottomRenderer = bottomObject.GetComponent<MeshRenderer>();
+            if (bottomRenderer == null)
+            {
+                Debug.LogError("Bottom object does not have a MeshRenderer!");
+            }
+            else
+            {
+                bottomRenderer.enabled = false;
+            }
+            // Устанавливаем начальный масштаб
+            bottomObject.localScale = new Vector3(startScale, startScale, startScale);
+        }
+        // Убедимся, что коллайдер стакана настроен как триггер
+        if (cupCollider != null)
+        {
+            cupCollider.isTrigger = true;
         }
     }
 
@@ -43,32 +59,62 @@ public class CoffeeFillSingleParticle : MonoBehaviour
     {
         if (isPickedUp || isLidded)
         {
-            // Если стаканчик поднят или закрыт, отключаем переливание
-            if (isOverflowing)
-            {
-                StopOverflow();
-            }
             return;
         }
 
-        // Проверяем, поступают ли частицы
-        if (isReceivingParticles && Time.time - lastParticleHitTime > stopOverflowDelay)
+        // Проверяем наклон стаканчика для проливания (только по оси X)
+        if (isStarted && !isLidded)
         {
-            isReceivingParticles = false;
-            if (isOverflowing)
+            float tiltAngleX = Mathf.Abs(transform.rotation.eulerAngles.x - verticalEulerAngles.x);
+            // Нормализуем угол к диапазону 0–180 градусов
+            if (tiltAngleX > 180f) tiltAngleX = 360f - tiltAngleX;
+            bool isSpilling = tiltAngleX > spillAngleThreshold;
+
+            if (isSpilling && currentHeight > minHeight)
             {
-                StopOverflow();
+                // Уменьшаем высоту при проливании
+                currentHeight = Mathf.Max(currentHeight - spillSpeed * Time.deltaTime, minHeight);
+                Debug.Log($"Spilling coffee: tiltAngleX={tiltAngleX}, currentHeight={currentHeight}, FillLevel={FillLevel}");
+            }
+
+            // Скрываем поверхность, если стакан пуст
+            if (currentHeight <= minHeight && isStarted)
+            {
+                if (bottomRenderer != null)
+                {
+                    bottomRenderer.enabled = false;
+                }
+                isStarted = false;
+                Debug.Log("Coffee cup is empty, hiding surface");
             }
         }
 
-        // Обновляем позицию эмиттера по оси Z
+        // Обновляем позицию и масштаб дна
         if (isStarted)
         {
-            liquidSurface.transform.localPosition = new Vector3(
-                liquidSurface.transform.localPosition.x,
-                liquidSurface.transform.localPosition.y,
-                currentHeight
-            );
+            if (bottomObject != null)
+            {
+                bottomObject.localPosition = new Vector3(
+                    bottomObject.localPosition.x,
+                    bottomObject.localPosition.y,
+                    currentHeight
+                );
+
+                // Обновляем масштаб на основе FillLevel
+                float scale = Mathf.Lerp(startScale, maxScale, FillLevel);
+                bottomObject.localScale = new Vector3(scale, scale, scale);
+            }
+        }
+    }
+
+    void OnCollisionEnter(Collision other)
+    {
+        if (isLidded) return; // Игнорируем, если крышечка уже установлена
+
+        if (other.gameObject.CompareTag("Lid"))
+        {
+            Debug.Log($"Lid detected in trigger: {other.gameObject.name}");
+            PlaceLid(other.gameObject);
         }
     }
 
@@ -76,77 +122,73 @@ public class CoffeeFillSingleParticle : MonoBehaviour
     {
         if (isLidded || isPickedUp) return; // Игнорируем частицы, если стаканчик закрыт или поднят
 
-        // Активируем Particle System при первом попадании
+        // Активируем поверхность при первом попадании
         if (!isStarted)
         {
             isStarted = true;
-            liquidSurface.Play();
-        }
-
-        // Отмечаем, что частицы поступают
-        isReceivingParticles = true;
-        lastParticleHitTime = Time.time;
-
-        if (!isOverflowing)
-        {
-            // Увеличиваем уровень жидкости по оси Z
-            currentHeight += fillSpeed;
-
-            // Проверяем, достиг ли уровень максимума
-            if (currentHeight >= maxHeight)
+            if (bottomRenderer != null)
             {
-                StartOverflow();
+                bottomRenderer.enabled = true;
             }
+            Debug.Log("Started filling coffee cup");
         }
-    }
 
-    void StartOverflow()
-    {
-        isOverflowing = true;
-        var emission = liquidSurface.emission;
-        emission.rateOverTime = 100; // Увеличиваем эмиссию для переливания
-        var collision = liquidSurface.collision;
-        collision.enabled = false; // Отключаем коллизию для стекания
-        var force = liquidSurface.forceOverLifetime;
-        force.enabled = true;
-        force.z = -overflowSpeed; // Сила вниз по оси Z
-    }
-
-    void StopOverflow()
-    {
-        isOverflowing = false;
-        var emission = liquidSurface.emission;
-        emission.rateOverTime = 50; // Возвращаем нормальную эмиссию
-        var collision = liquidSurface.collision;
-        collision.enabled = true; // Включаем коллизию
-        var force = liquidSurface.forceOverLifetime;
-        force.enabled = false; // Отключаем силу
+        // Увеличиваем уровень жидкости по оси Z
+        currentHeight = Mathf.Min(currentHeight + fillSpeed, maxHeight);
+        Debug.Log($"Filling coffee: currentHeight={currentHeight}, FillLevel={FillLevel}");
     }
 
     public void PickUp()
     {
         isPickedUp = true;
         cupCollider.enabled = false; // Отключаем коллайдер
-        cupRigidbody.isKinematic = true; // Отключаем физику
+        Debug.Log($"Picked up cup: {gameObject.name}");
     }
 
     public void Drop()
     {
         isPickedUp = false;
         cupCollider.enabled = !isLidded; // Включаем коллайдер, если нет крышечки
-        cupRigidbody.isKinematic = false; // Включаем физику
+        Debug.Log($"Dropped cup: {gameObject.name}");
     }
 
     public void PlaceLid(GameObject lid)
     {
+        if (lid == null)
+        {
+            Debug.LogError("Lid object is null in PlaceLid!");
+            return;
+        }
+
         isLidded = true;
-        cupCollider.enabled = false; // Отключаем коллайдер
         lid.transform.SetParent(transform); // Прикрепляем крышечку к стаканчику
-        lid.transform.localPosition = new Vector3(0, 0, maxHeight + 0.05f); // Позиция над стаканчиком по Z
+        lid.transform.localPosition = new Vector3(0, 0, lid.transform.position.z); // Позиция над стаканчиком по Z
         lid.transform.localRotation = Quaternion.identity; // Сбрасываем вращение
-        var lidCollider = lid.GetComponent<Collider>();
-        if (lidCollider != null) lidCollider.enabled = false; // Отключаем коллайдер крышечки
+
+        // Отключаем физику и возможность взаимодействия
         var lidRigidbody = lid.GetComponent<Rigidbody>();
-        if (lidRigidbody != null) lidRigidbody.isKinematic = true; // Отключаем физику крышечки
+        if (lidRigidbody != null)
+        {
+            lidRigidbody.isKinematic = true; // Делаем Rigidbody кинематическим
+            lidRigidbody.useGravity = false; // Отключаем гравитацию
+        }
+        else
+        {
+            Debug.LogWarning($"No Rigidbody on lid: {lid.name}");
+        }
+
+        var lidCollider = lid.GetComponent<Collider>();
+        if (lidCollider != null)
+        {
+            lidCollider.enabled = false; // Отключаем коллайдер
+        }
+        else
+        {
+            Debug.LogWarning($"No Collider on lid: {lid.name}");
+        }
+
+        // Удаляем тег "Lid", чтобы предотвратить повторное взятие
+        lid.tag = "Untagged";
+        Debug.Log($"Placed lid on cup: {lid.name}, FillLevel={FillLevel}, Parent={lid.transform.parent.name}");
     }
 }

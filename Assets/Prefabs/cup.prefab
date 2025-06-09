@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 8265137425110487612}
   m_Layer: 0
   m_Name: Capsule_32
-  m_TagString: Untagged
+  m_TagString: Cup
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -67,7 +67,7 @@ GameObject:
   - component: {fileID: 3077269052746959310}
   m_Layer: 0
   m_Name: Capsule_23
-  m_TagString: Untagged
+  m_TagString: Cup
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -122,7 +122,7 @@ GameObject:
   - component: {fileID: 5983814192223615766}
   m_Layer: 0
   m_Name: Capsule_10
-  m_TagString: Untagged
+  m_TagString: Cup
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -177,7 +177,7 @@ GameObject:
   - component: {fileID: 3415494455661642674}
   m_Layer: 0
   m_Name: Capsule_30
-  m_TagString: Untagged
+  m_TagString: Cup
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -232,7 +232,7 @@ GameObject:
   - component: {fileID: 1882086897287673578}
   m_Layer: 0
   m_Name: Capsule_3
-  m_TagString: Untagged
+  m_TagString: Cup
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -287,7 +287,7 @@ GameObject:
   - component: {fileID: 4863834304376394752}
   m_Layer: 0
   m_Name: Capsule_0
-  m_TagString: Untagged
+  m_TagString: Cup
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -342,7 +342,7 @@ GameObject:
   - component: {fileID: 5262666179170236755}
   m_Layer: 0
   m_Name: Capsule_13
-  m_TagString: Untagged
+  m_TagString: Cup
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -397,7 +397,7 @@ GameObject:
   - component: {fileID: 5641914962425308121}
   m_Layer: 0
   m_Name: Capsule_6
-  m_TagString: Untagged
+  m_TagString: Cup
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -452,7 +452,7 @@ GameObject:
   - component: {fileID: 6125301309691028430}
   m_Layer: 0
   m_Name: Capsule_18
-  m_TagString: Untagged
+  m_TagString: Cup
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -507,7 +507,7 @@ GameObject:
   - component: {fileID: 6989000272400727496}
   m_Layer: 0
   m_Name: Capsule_22
-  m_TagString: Untagged
+  m_TagString: Cup
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -561,11 +561,10 @@ GameObject:
   - component: {fileID: 5993737920354537056}
   - component: {fileID: 2753703597917707128}
   - component: {fileID: 395066153653771173}
-  - component: {fileID: 5180331551311757791}
   - component: {fileID: 8931961920637413224}
   m_Layer: 6
   m_Name: cup
-  m_TagString: Untagged
+  m_TagString: Cup
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -620,7 +619,6 @@ Transform:
   - {fileID: 8485766020585321170}
   - {fileID: 6069125356960736540}
   - {fileID: 6885550758588902176}
-  - {fileID: 49737864330529378}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: -90, y: 0, z: 0}
 --- !u!33 &2753703597917707128
@@ -673,28 +671,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!64 &5180331551311757791
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1326301367460854135}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 6380697309018195274, guid: bf39a3dc6f23ae549894ff0ecd4e33c8, type: 3}
 --- !u!114 &8931961920637413224
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -707,11 +683,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0b5709e245cb78947bf60a0ce69d8b62, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  liquidSurface: {fileID: 7103794943854483284}
+  liquidSurfacePlane: {fileID: 6885550758588902176}
+  bottomObject: {fileID: 6885550758588902176}
   fillSpeed: 0.001
   maxHeight: 0
-  overflowSpeed: 2
-  stopOverflowDelay: 0.5
+  minHeight: 0
+  spillSpeed: 0.002
+  spillAngleThreshold: 30
+  startScale: 0.00202
+  maxScale: 0.00288
 --- !u!1 &1585706625255237727
 GameObject:
   m_ObjectHideFlags: 0
@@ -724,7 +704,7 @@ GameObject:
   - component: {fileID: 4030993102260367599}
   m_Layer: 0
   m_Name: Capsule_7
-  m_TagString: Untagged
+  m_TagString: Cup
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -779,7 +759,7 @@ GameObject:
   - component: {fileID: 7314076662582962626}
   m_Layer: 0
   m_Name: Capsule_11
-  m_TagString: Untagged
+  m_TagString: Cup
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -834,7 +814,7 @@ GameObject:
   - component: {fileID: 1423289449036507793}
   m_Layer: 0
   m_Name: Capsule_24
-  m_TagString: Untagged
+  m_TagString: Cup
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -889,7 +869,7 @@ GameObject:
   - component: {fileID: 5531550507767013408}
   m_Layer: 0
   m_Name: Capsule_26
-  m_TagString: Untagged
+  m_TagString: Cup
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -944,7 +924,7 @@ GameObject:
   - component: {fileID: 3302541998106461828}
   m_Layer: 0
   m_Name: Capsule_16
-  m_TagString: Untagged
+  m_TagString: Cup
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -999,7 +979,7 @@ GameObject:
   - component: {fileID: 4120379404701538587}
   m_Layer: 0
   m_Name: Capsule_20
-  m_TagString: Untagged
+  m_TagString: Cup
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1054,7 +1034,7 @@ GameObject:
   - component: {fileID: 2289364053297502878}
   m_Layer: 0
   m_Name: Capsule_35
-  m_TagString: Untagged
+  m_TagString: Cup
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1109,7 +1089,7 @@ GameObject:
   - component: {fileID: 2707908032201344660}
   m_Layer: 0
   m_Name: Capsule_14
-  m_TagString: Untagged
+  m_TagString: Cup
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1164,7 +1144,7 @@ GameObject:
   - component: {fileID: 4114228905014872612}
   m_Layer: 0
   m_Name: Capsule_25
-  m_TagString: Untagged
+  m_TagString: Cup
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1217,9 +1197,11 @@ GameObject:
   m_Component:
   - component: {fileID: 6885550758588902176}
   - component: {fileID: 7732477047694577029}
+  - component: {fileID: 2376246318086450738}
+  - component: {fileID: 2509890965281356456}
   m_Layer: 6
   m_Name: GameObject
-  m_TagString: Untagged
+  m_TagString: Cup
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1232,13 +1214,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4351726667292212122}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: -0, z: -0.02}
+  m_LocalScale: {x: 0.0020286257, y: 0.0020286257, z: 0.0020286257}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 5993737920354537056}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!65 &7732477047694577029
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1258,8 +1240,58 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.018445458, y: 0.017263813, z: 0.0009206531}
-  m_Center: {x: -0.00016502026, y: -0.0003629683, z: -0.0223336}
+  m_Size: {x: 9.88531, y: 0.51527834, z: 10.146846}
+  m_Center: {x: -0.0050778016, y: -0.24236064, z: 0.105440706}
+--- !u!33 &2376246318086450738
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4351726667292212122}
+  m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!23 &2509890965281356456
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4351726667292212122}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: c6d38711520119c4e89ddf1ea6adc007, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &4387258180905188158
 GameObject:
   m_ObjectHideFlags: 0
@@ -1272,7 +1304,7 @@ GameObject:
   - component: {fileID: 5889234959750372540}
   m_Layer: 0
   m_Name: Capsule_34
-  m_TagString: Untagged
+  m_TagString: Cup
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1327,7 +1359,7 @@ GameObject:
   - component: {fileID: 2092303872889429018}
   m_Layer: 0
   m_Name: Capsule_33
-  m_TagString: Untagged
+  m_TagString: Cup
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1382,7 +1414,7 @@ GameObject:
   - component: {fileID: 898759740179128760}
   m_Layer: 0
   m_Name: Capsule_21
-  m_TagString: Untagged
+  m_TagString: Cup
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1437,7 +1469,7 @@ GameObject:
   - component: {fileID: 653735505730860954}
   m_Layer: 0
   m_Name: Capsule_15
-  m_TagString: Untagged
+  m_TagString: Cup
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1492,7 +1524,7 @@ GameObject:
   - component: {fileID: 1146121806025315403}
   m_Layer: 0
   m_Name: Capsule_12
-  m_TagString: Untagged
+  m_TagString: Cup
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1547,7 +1579,7 @@ GameObject:
   - component: {fileID: 2946571515270741051}
   m_Layer: 0
   m_Name: Capsule_27
-  m_TagString: Untagged
+  m_TagString: Cup
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1602,7 +1634,7 @@ GameObject:
   - component: {fileID: 913649259803009204}
   m_Layer: 0
   m_Name: Capsule_5
-  m_TagString: Untagged
+  m_TagString: Cup
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1657,7 +1689,7 @@ GameObject:
   - component: {fileID: 4240585616313382161}
   m_Layer: 0
   m_Name: Capsule_4
-  m_TagString: Untagged
+  m_TagString: Cup
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1712,7 +1744,7 @@ GameObject:
   - component: {fileID: 90190312284948804}
   m_Layer: 0
   m_Name: Capsule_29
-  m_TagString: Untagged
+  m_TagString: Cup
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1767,7 +1799,7 @@ GameObject:
   - component: {fileID: 4822092827911830488}
   m_Layer: 0
   m_Name: Capsule_31
-  m_TagString: Untagged
+  m_TagString: Cup
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1822,7 +1854,7 @@ GameObject:
   - component: {fileID: 6152908087248176252}
   m_Layer: 0
   m_Name: Capsule_2
-  m_TagString: Untagged
+  m_TagString: Cup
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1877,7 +1909,7 @@ GameObject:
   - component: {fileID: 8212383589758977693}
   m_Layer: 0
   m_Name: Capsule_17
-  m_TagString: Untagged
+  m_TagString: Cup
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1932,7 +1964,7 @@ GameObject:
   - component: {fileID: 8894656897295140974}
   m_Layer: 0
   m_Name: Capsule_19
-  m_TagString: Untagged
+  m_TagString: Cup
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1987,7 +2019,7 @@ GameObject:
   - component: {fileID: 1538027292132928745}
   m_Layer: 0
   m_Name: Capsule_1
-  m_TagString: Untagged
+  m_TagString: Cup
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2042,7 +2074,7 @@ GameObject:
   - component: {fileID: 7451029722110261362}
   m_Layer: 0
   m_Name: Capsule_28
-  m_TagString: Untagged
+  m_TagString: Cup
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2097,7 +2129,7 @@ GameObject:
   - component: {fileID: 3140241138243627454}
   m_Layer: 0
   m_Name: Capsule_9
-  m_TagString: Untagged
+  m_TagString: Cup
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2152,7 +2184,7 @@ GameObject:
   - component: {fileID: 9123067094401938004}
   m_Layer: 0
   m_Name: Capsule_8
-  m_TagString: Untagged
+  m_TagString: Cup
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2195,82 +2227,3 @@ CapsuleCollider:
   m_Height: 0.04
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
---- !u!1001 &4674980837806829578
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 5993737920354537056}
-    m_Modifications:
-    - target: {fileID: 202709709357837695, guid: 6689200f9bf217a45b47c2812f538281, type: 3}
-      propertyPath: m_Name
-      value: Particle System
-      objectReference: {fileID: 0}
-    - target: {fileID: 2482998043361830750, guid: 6689200f9bf217a45b47c2812f538281, type: 3}
-      propertyPath: ShapeModule.radius.value
-      value: 0.07
-      objectReference: {fileID: 0}
-    - target: {fileID: 2482998043361830750, guid: 6689200f9bf217a45b47c2812f538281, type: 3}
-      propertyPath: InitialModule.startSize.scalar
-      value: 0.01
-      objectReference: {fileID: 0}
-    - target: {fileID: 2482998043361830750, guid: 6689200f9bf217a45b47c2812f538281, type: 3}
-      propertyPath: EmissionModule.rateOverTime.scalar
-      value: 200
-      objectReference: {fileID: 0}
-    - target: {fileID: 4634320700062382696, guid: 6689200f9bf217a45b47c2812f538281, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4634320700062382696, guid: 6689200f9bf217a45b47c2812f538281, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4634320700062382696, guid: 6689200f9bf217a45b47c2812f538281, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: -0.0182
-      objectReference: {fileID: 0}
-    - target: {fileID: 4634320700062382696, guid: 6689200f9bf217a45b47c2812f538281, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4634320700062382696, guid: 6689200f9bf217a45b47c2812f538281, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4634320700062382696, guid: 6689200f9bf217a45b47c2812f538281, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4634320700062382696, guid: 6689200f9bf217a45b47c2812f538281, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4634320700062382696, guid: 6689200f9bf217a45b47c2812f538281, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: -90
-      objectReference: {fileID: 0}
-    - target: {fileID: 4634320700062382696, guid: 6689200f9bf217a45b47c2812f538281, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4634320700062382696, guid: 6689200f9bf217a45b47c2812f538281, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 6689200f9bf217a45b47c2812f538281, type: 3}
---- !u!4 &49737864330529378 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 4634320700062382696, guid: 6689200f9bf217a45b47c2812f538281, type: 3}
-  m_PrefabInstance: {fileID: 4674980837806829578}
-  m_PrefabAsset: {fileID: 0}
---- !u!198 &7103794943854483284 stripped
-ParticleSystem:
-  m_CorrespondingSourceObject: {fileID: 2482998043361830750, guid: 6689200f9bf217a45b47c2812f538281, type: 3}
-  m_PrefabInstance: {fileID: 4674980837806829578}
-  m_PrefabAsset: {fileID: 0}

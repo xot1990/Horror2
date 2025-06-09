@@ -21,11 +21,23 @@ namespace StarterAssets
         [Header("Mouse Cursor Settings")]
         public bool cursorLocked = true;
         public bool cursorInputForLook = true;
+        public float mouseScroll; // Ввод колеса мыши
+        public bool push;
 
 #if ENABLE_INPUT_SYSTEM
+        
+        public void OnScroll(InputValue value)
+        {
+            mouseScroll = value.Get<Vector2>().y; // Получаем значение прокрутки (y — вертикальная ось)
+        }
         public void OnMove(InputValue value)
         {
             MoveInput(value.Get<Vector2>());
+        }
+        
+        public void OnPush(InputValue value)
+        {
+            push = value.isPressed;
         }
 
         public void OnLook(InputValue value)
