@@ -67,7 +67,12 @@ public class QuestLogic : MonoBehaviour
     private void QuestDone(Quest Q)
     {
         _quests.Remove(_quests.Find(X => X.Name == Q.Name));
-        StartQuest(Q.NextQuest);
+        if(Q.NextQuest != null)
+            StartQuest(Q.NextQuest);
+        else
+        {
+            Q.method();
+        }
     }
 
     private void StartQuest(QuestData Q)

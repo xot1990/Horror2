@@ -17,3 +17,4 @@ MonoBehaviour:
     \u043F\u043E\u0441\u0435\u0442\u0438\u0442\u0435\u043B\u044F"
   nextQuest: {fileID: 11400000, guid: de3faefa4e84c6a479cda43b58b02d5d, type: 2}
   ActionCount: 1
+  isNPC: 1

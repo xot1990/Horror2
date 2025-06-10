@@ -12,6 +12,11 @@ public class QuestAction : Quest
         Name = D.Name;
         NextQuest = D.nextQuest;
         discription = D.Discription;
+
+        if (D.nextQuest == null)
+        {
+            method = D.FinalQuest;
+        }
     }
     
     public override void Done(string T)

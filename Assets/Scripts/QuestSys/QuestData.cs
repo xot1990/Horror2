@@ -9,7 +9,7 @@ public class QuestData : ScriptableObject
     public string Name;
     public string Discription;
     public QuestData nextQuest;
-    public Action action;
+    
     
     public virtual Quest CreateQuest()
     {
@@ -19,5 +19,10 @@ public class QuestData : ScriptableObject
     public virtual void ActionQuest()
     {
        
+    }
+
+    public virtual void FinalQuest()
+    {
+        
     }
 }

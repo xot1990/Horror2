@@ -24,6 +24,8 @@ namespace StarterAssets
         public AudioClip LandingAudioClip;
         public AudioClip[] FootstepAudioClips;
         [Range(0, 1)] public float FootstepAudioVolume = 0.5f;
+        
+        
 
         [Space(10)]
         [Tooltip("The height the player can jump")]
@@ -425,10 +427,14 @@ namespace StarterAssets
                 float dist = Vector3.Distance(transform.position, targetObject.transform.position);
 
                 // Проверяем тег объекта (родителя или самого объекта)
-                if (targetObject.CompareTag("Cup") || targetObject.CompareTag("Lid"))
+                if (targetObject.CompareTag("Cup") && dist < 2f)
                 {
                     isInteractable = true;
                     CheckPerent("Cup");
+                }
+                else if (targetObject.CompareTag("Lid"))
+                {
+                    isInteractable = true;
                     CheckPerent("Lid");
                 }
                 else if (targetObject.CompareTag("CoffeeMachine") && dist < 2f)
@@ -462,13 +468,17 @@ namespace StarterAssets
                             _targetObject = targetObject;
                         }
                     }
+                    else
+                    {
+                        _targetObject = targetObject;
+                    }
                 }
                 
                 
             }
             else
             {
-                Debug.Log("Raycast missed");
+//                Debug.Log("Raycast missed");
             }
 
             if (!isInteractable)
@@ -655,7 +665,7 @@ namespace StarterAssets
                     Debug.Log($"SwitchLight: {dist}");
                     if (dist < 3f)
                     {
-                        var doorScript = _targetObject.GetComponent<LightSwitch>();
+                        LightSwitch doorScript = _targetObject.GetComponent<LightSwitch>();
                         if (doorScript != null)
                         {
                             Debug.Log("Calling SwitchLight.Use");

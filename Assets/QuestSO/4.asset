@@ -12,8 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 70e3cfd534650324495f027e279dce1e, type: 3}
   m_Name: 4
   m_EditorClassIdentifier: 
-  Name: Coffe
+  Name: Coffee
   Discription: "\u0421\u0432\u0430\u0440\u0438\u0442\u0435 \u043A\u043E\u0444\u0435
     \u0434\u043B\u044F \u043F\u043E\u0441\u0435\u0442\u0438\u0442\u0435\u043B\u044F"
   nextQuest: {fileID: 0}
   ActionCount: 1
+  isNPC: 0

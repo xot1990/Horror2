@@ -20,6 +20,12 @@ public class QuestDataAction : QuestData
     {
         return new QuestAction(this);
     }
-    
-    
+
+    public override void FinalQuest()
+    {
+        if (nextQuest == null)
+        {
+            QuestEventBus.GetStartFinal();
+        }
+    }
 }

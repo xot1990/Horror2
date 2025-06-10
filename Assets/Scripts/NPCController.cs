@@ -1,51 +1,71 @@
+using System;
 using UnityEngine;
 using UnityEngine.AI;
 using System.Collections;
-using SojaExiles; // Для использования OpenCloseDoor
+using System.Collections.Generic;
+using SojaExiles; // ??? ????????????? OpenCloseDoor
 
 public class NPCController : MonoBehaviour
 {
-    [SerializeField] private Transform targetPoint; // Целевая точка движения
-    [SerializeField] private Transform exitPoint; // Точка выхода
-    [SerializeField] private float interactionDistance = 3f; // Дистанция для разговора
-    [SerializeField] private float doorInteractionDistance = 2f; // Дистанция для взаимодействия с дверью
+    [SerializeField] private Transform targetPoint; // ??????? ????? ????????
+    [SerializeField] private Transform exitPoint; // ????? ??????
+    [SerializeField] private float interactionDistance = 3f; // ????????? ??? ?????????
+    [SerializeField] private float doorInteractionDistance = 3f; // ????????? ??? ?????????????? ? ??????
+    [SerializeField] private float maxNavMeshDistance = 5f; // ???????????? ?????????? ??? ?????? ????? ?? NavMesh
+    [SerializeField] private float moveSpeed = 2.5f; // ???????? ???????? NPC
+    [SerializeField] private AudioClip FootstepAudioClip; // ???? ????? ??? ????????
 
-    // Фразы NPC
-    private readonly string arrivalPhrase = "Эй, где мой кофе?";
-    private readonly string[] coffeeReactions = new string[]
-    {
-        "Это что, пустой стакан?!", // 0%
-        "Ты серьёзно? Это же четверть стакана!", // 25%
-        "Наполовину? Мог бы и постараться!", // 50%
-        "О, полный стакан! Спасибо!" // 100%
-    };
-
+    public AudioClip startTalk;
+    public List<AudioClip> coffeeReactions;
+    
+    
     private NavMeshAgent agent;
+    private Animator animator; // ???????? NPC
     private bool isActive = false;
     private GameObject player;
     private bool hasReachedTarget = false;
     private bool isInteracting = false;
 
-    // Инициализация NPC после спавна
+    // ????????????? NPC ????? ??????
     public void Initialize(Transform target, Transform exit)
     {
         targetPoint = target;
         exitPoint = exit;
         agent = GetComponent<NavMeshAgent>();
+        animator = GetComponent<Animator>();
         player = GameObject.FindGameObjectWithTag("Player");
+
         if (player == null)
         {
             Debug.LogError("Player with tag 'Player' not found!");
         }
+        if (agent == null)
+        {
+            Debug.LogError("NavMeshAgent component not found on NPC!");
+            return;
+        }
+        if (animator == null)
+        {
+            Debug.LogWarning($"Animator component not found on NPC {gameObject.name}! No animations will play.");
+        }
+        if (FootstepAudioClip == null)
+        {
+            Debug.LogWarning($"FootstepAudioClip not assigned on NPC {gameObject.name}! No footstep sounds will play.");
+        }
+
+        // ????????? ???????? ??????
+        agent.speed = moveSpeed;
+        agent.angularSpeed = 120f; // ??? ???????? ????????
+        agent.stoppingDistance = 0.5f; // ???????? ?????????
     }
 
-    // Запуск поведения NPC
+    // ?????? ????????? NPC
     public void StartBehavior()
     {
-        // Проверяем, что агент активен и находится на NavMesh
+        // ?????????, ??? ????? ??????? ? ????????? ?? NavMesh
         if (agent == null || !agent.isOnNavMesh)
         {
-            Debug.LogError("NavMeshAgent is not initialized or not on NavMesh!");
+            Debug.LogError($"NavMeshAgent on {gameObject.name} is not initialized or not on NavMesh!");
             return;
         }
 
@@ -53,43 +73,118 @@ public class NPCController : MonoBehaviour
         StartCoroutine(MoveToTarget());
     }
 
-    // Корутина для движения к целевой точке
+    // ???????? ??? ???????? ? ??????? ?????
     IEnumerator MoveToTarget()
     {
-        // Ждем один кадр для инициализации NavMeshAgent
+        // ???? ???? ???? ??? ????????????? NavMeshAgent
         yield return null;
 
-        // Устанавливаем целевую точку
+        // ?????????, ??? targetPoint ?? NavMesh
         NavMeshHit hit;
-        if (NavMesh.SamplePosition(targetPoint.position, out hit, 1.0f, NavMesh.AllAreas))
+        if (!NavMesh.SamplePosition(targetPoint.position, out hit, maxNavMeshDistance, NavMesh.AllAreas))
         {
-            agent.SetDestination(hit.position);
-        }
-        else
-        {
-            Debug.LogError($"Target point {targetPoint.position} is not on NavMesh!");
+            Debug.LogError($"Target point {targetPoint.position} is not on NavMesh within {maxNavMeshDistance}m!");
             yield break;
         }
 
-        // Ждем, пока NPC дойдет до точки
+        // ????????????? ??????? ????? ? ???????? ???????? ??????
+        agent.SetDestination(hit.position);
+        SetAnimationState(true);
+        Debug.Log($"NPC {gameObject.name} moving to target point {hit.position} with animation.");
+
+        // ????????? ??????? ????? ?? ????
+        bool doorOpened = false;
         while (Vector3.Distance(transform.position, targetPoint.position) > 0.5f)
         {
+            // ???? ????? ??????????
+            Collider[] colliders = Physics.OverlapSphere(transform.position + Vector3.up * 0.5f, doorInteractionDistance, LayerMask.GetMask("Ground"));
+            foreach (var collider in colliders)
+            {
+                if (collider.CompareTag("Door"))
+                {
+                    OpenCloseDoor door = collider.GetComponent<OpenCloseDoor>();
+                    if (door != null && !door.open)
+                    {
+                        // ????????????? NPC ? ????????
+                        agent.isStopped = true;
+                        SetAnimationState(false);
+                        Debug.Log($"NPC {gameObject.name} detected door {collider.gameObject.name} on way to target, opening it.");
+                        door.Use(); // ????????? ?????
+                        yield return new WaitForSeconds(0.6f); // ???? ???????? + ?????
+                        agent.isStopped = false;
+                        SetAnimationState(true); // ???????????? ???????? ??????
+                        doorOpened = true;
+
+                        // ????????? ???? ????? ???????? ?????
+                        if (NavMesh.SamplePosition(targetPoint.position, out hit, maxNavMeshDistance, NavMesh.AllAreas))
+                        {
+                            agent.SetDestination(hit.position);
+                            Debug.Log($"NPC {gameObject.name} updated path to {hit.position} after opening door to target.");
+                        }
+                    }
+                }
+            }
+
+            // ????????? ???????????? ? ???????? ??????
+            if (!doorOpened)
+            {
+                RaycastHit rayHit;
+                Vector3 rayOrigin = transform.position + Vector3.up * 0.5f;
+                Vector3 rayDirection = agent.velocity.normalized != Vector3.zero ? agent.velocity.normalized : transform.forward;
+                if (Physics.Raycast(rayOrigin, rayDirection, out rayHit, doorInteractionDistance, LayerMask.GetMask("Ground")))
+                {
+                    if (rayHit.collider.CompareTag("Door"))
+                    {
+                        OpenCloseDoor door = rayHit.collider.GetComponent<OpenCloseDoor>();
+                        if (door != null && !door.open)
+                        {
+                            agent.isStopped = true;
+                            SetAnimationState(false);
+                            Debug.Log($"NPC {gameObject.name} hit closed door {rayHit.collider.gameObject.name} on way to target, opening it.");
+                            door.Use();
+                            yield return new WaitForSeconds(0.6f);
+                            agent.isStopped = false;
+                            SetAnimationState(true);
+                            doorOpened = true;
+
+                            // ????????? ????
+                            if (NavMesh.SamplePosition(targetPoint.position, out hit, maxNavMeshDistance, NavMesh.AllAreas))
+                            {
+                                agent.SetDestination(hit.position);
+                                Debug.Log($"NPC {gameObject.name} updated path to {hit.position} after hitting door to target.");
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ????????? ????
+            if (doorOpened)
+            {
+                NavMeshPath path = new NavMeshPath();
+                if (!agent.CalculatePath(hit.position, path) || path.status != NavMeshPathStatus.PathComplete)
+                {
+                    Debug.LogWarning($"NPC {gameObject.name} cannot find a complete path to {hit.position} after opening door to target!");
+                }
+            }
+
             yield return null;
         }
 
-        // Останавливаем NPC и поворачиваем к игроку
+        // ????????????? NPC ? ???????? ???????? ???????
         agent.isStopped = true;
+        SetAnimationState(false);
         hasReachedTarget = true;
         if (player != null)
         {
             transform.LookAt(player.transform);
         }
-        Speak(arrivalPhrase);
-
-        // Ждем взаимодействия (через Use)
+        Speak(startTalk);
+        QuestEventBus.GetDoneAction("Client");
+        // ???? ?????????????? (????? Use)
         while (isActive && !isInteracting)
         {
-            // Поддерживаем поворот к игроку
+            // ???????????? ??????? ? ??????
             if (player != null && Vector3.Distance(transform.position, player.transform.position) <= interactionDistance)
             {
                 transform.LookAt(player.transform);
@@ -98,25 +193,55 @@ public class NPCController : MonoBehaviour
         }
     }
 
-    // Метод для произнесения фразы
-    private void Speak(string phrase)
+    // ????? ??? ?????????? ?????????
+    private void SetAnimationState(bool isWalking)
     {
-        Debug.Log($"NPC говорит: {phrase}"); // Замените на аудио/субтитры
+        if (animator != null)
+        {
+            animator.SetBool("isWalking", isWalking);
+            Debug.Log($"NPC {gameObject.name} animation state: isWalking = {isWalking}");
+        }
     }
 
-    // Взаимодействие с NPC (вызывается системой квестов)
-    public void Use(float fillLevel)
+    // ????? ??? ????????? ?????? ?????
+    private void OnFootstep(AnimationEvent animationEvent)
     {
-        if (!hasReachedTarget || !isActive || isInteracting) return;
-
-        isInteracting = true;
-        StartCoroutine(ProcessCoffee(fillLevel));
+        if (animationEvent.animatorClipInfo.weight > 0.5f)
+        {
+            if (FootstepAudioClip != null)
+            {
+                AudioSource.PlayClipAtPoint(FootstepAudioClip, transform.position, 0.5f);
+                Debug.Log($"NPC {gameObject.name} played footstep sound at {transform.position}");
+            }
+            else
+            {
+                Debug.LogWarning($"FootstepAudioClip is null on NPC {gameObject.name}!");
+            }
+        }
     }
 
-    // Корутина для обработки кофе
-    IEnumerator ProcessCoffee(float fillLevel)
+    // ????? ??? ???????????? ?????
+    private void Speak(AudioClip clip)
     {
-        // Преобразуем FillLevel (0–1) в ближайший процент (0, 0.25, 0.5, 1.0)
+        AudioSource.PlayClipAtPoint(clip,transform.position);
+    }
+
+    // ?????????????? ? NPC (?????????? ???????? ???????)
+    
+    private void OnCollisionEnter(Collision other)
+    {
+        if (other.gameObject.CompareTag("Cup") || other.gameObject.CompareTag("Lid"))
+        {
+            var C = other.transform.GetComponent<CoffeeFillSingleParticle>();
+            ProcessCoffee(C.FillLevel);
+            Destroy(C.gameObject);
+        }
+    }
+
+    // ???????? ??? ????????? ????
+    private void ProcessCoffee(float fillLevel)
+    {
+        // ??????????? FillLevel (0–1) ? ????????? ??????? (0, 0.25, 0.5, 1.0)
         float[] thresholds = { 0f, 0.25f, 0.5f, 1f };
         int reactionIndex = 0;
         float minDiff = Mathf.Abs(fillLevel - thresholds[0]);
@@ -132,39 +257,41 @@ public class NPCController : MonoBehaviour
 
         Speak(coffeeReactions[reactionIndex]);
 
-        // Если стакан не пустой, NPC уходит
+        // ???? ?????? ?? ??????, NPC ??????
         if (fillLevel > 0)
         {
-            yield return StartCoroutine(ExitSequence());
+           StartCoroutine(ExitSequence());
+           QuestEventBus.GetDoneAction("Coffee");
         }
         else
         {
-            isInteracting = false; // Разрешаем повторное взаимодействие
+            isInteracting = false; // ????????? ????????? ??????????????
         }
     }
 
-    // Корутина для ухода к точке выхода
+    // ???????? ??? ????? ? ????? ??????
     IEnumerator ExitSequence()
     {
-        agent.isStopped = false;
-
-        // Проверяем, что точка выхода на NavMesh
+        yield return new WaitForSeconds(2);
+        // ?????????, ??? ????? ?????? ?? NavMesh
         NavMeshHit hit;
-        if (NavMesh.SamplePosition(exitPoint.position, out hit, 1.0f, NavMesh.AllAreas))
+        if (!NavMesh.SamplePosition(exitPoint.position, out hit, maxNavMeshDistance, NavMesh.AllAreas))
         {
-            agent.SetDestination(hit.position);
-        }
-        else
-        {
-            Debug.LogError($"Exit point {exitPoint.position} is not on NavMesh!");
+            Debug.LogError($"Exit point {exitPoint.position} is not on NavMesh within {maxNavMeshDistance}m!");
             yield break;
         }
 
-        // Проверяем наличие двери на пути
+        agent.isStopped = false;
+        agent.SetDestination(hit.position);
+        SetAnimationState(true); // ???????? ???????? ??????
+        Debug.Log($"NPC {gameObject.name} moving to exit point {hit.position} with animation.");
+
+        // ????????? ??????? ????? ?? ????
+        bool doorOpened = false;
         while (Vector3.Distance(transform.position, exitPoint.position) > 0.5f)
         {
-            // Ищем дверь поблизости
-            Collider[] colliders = Physics.OverlapSphere(transform.position, doorInteractionDistance);
+            // ???? ????? ??????????
+            Collider[] colliders = Physics.OverlapSphere(transform.position + Vector3.up * 0.5f, doorInteractionDistance, LayerMask.GetMask("Ground"));
             foreach (var collider in colliders)
             {
                 if (collider.CompareTag("Door"))
@@ -172,19 +299,85 @@ public class NPCController : MonoBehaviour
                     OpenCloseDoor door = collider.GetComponent<OpenCloseDoor>();
                     if (door != null && !door.open)
                     {
-                        // Останавливаем NPC перед дверью
+                        // ????????????? NPC ? ????????
                         agent.isStopped = true;
-                        door.Use(); // Открываем дверь
-                        yield return new WaitForSeconds(0.5f); // Ждем анимацию
-                        agent.isStopped = false; // Продолжаем движение
+                        SetAnimationState(false);
+                        Debug.Log($"NPC {gameObject.name} detected door {collider.gameObject.name} on way to exit, opening it.");
+                        door.Use(); // ????????? ?????
+                        yield return new WaitForSeconds(0.6f); // ???? ???????? + ?????
+                        agent.isStopped = false;
+                        SetAnimationState(true); // ???????????? ???????? ??????
+                        doorOpened = true;
+
+                        // ????????? ???? ????? ???????? ?????
+                        if (NavMesh.SamplePosition(exitPoint.position, out hit, maxNavMeshDistance, NavMesh.AllAreas))
+                        {
+                            agent.SetDestination(hit.position);
+                            Debug.Log($"NPC {gameObject.name} updated path to {hit.position} after opening door to exit.");
+                        }
                     }
                 }
             }
+
+            // ????????? ???????????? ? ???????? ??????
+            if (!doorOpened)
+            {
+                RaycastHit rayHit;
+                Vector3 rayOrigin = transform.position + Vector3.up * 0.5f;
+                Vector3 rayDirection = agent.velocity.normalized != Vector3.zero ? agent.velocity.normalized : transform.forward;
+                if (Physics.Raycast(rayOrigin, rayDirection, out rayHit, doorInteractionDistance, LayerMask.GetMask("Ground")))
+                {
+                    if (rayHit.collider.CompareTag("Door"))
+                    {
+                        OpenCloseDoor door = rayHit.collider.GetComponent<OpenCloseDoor>();
+                        if (door != null && !door.open)
+                        {
+                            agent.isStopped = true;
+                            SetAnimationState(false);
+                            Debug.Log($"NPC {gameObject.name} hit closed door {rayHit.collider.gameObject.name} on way to exit, opening it.");
+                            door.Use();
+                            yield return new WaitForSeconds(0.6f);
+                            agent.isStopped = false;
+                            SetAnimationState(true);
+                            doorOpened = true;
+
+                            // ????????? ????
+                            if (NavMesh.SamplePosition(exitPoint.position, out hit, maxNavMeshDistance, NavMesh.AllAreas))
+                            {
+                                agent.SetDestination(hit.position);
+                                Debug.Log($"NPC {gameObject.name} updated path to {hit.position} after hitting door to exit.");
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ????????? ????
+            if (doorOpened)
+            {
+                NavMeshPath path = new NavMeshPath();
+                if (!agent.CalculatePath(hit.position, path) || path.status != NavMeshPathStatus.PathComplete)
+                {
+                    Debug.LogWarning($"NPC {gameObject.name} cannot find a complete path to {hit.position} after opening door to exit!");
+                }
+            }
+
             yield return null;
         }
 
-        // Уничтожаем NPC
+        // ????????????? NPC ? ???????? ????? ????????????
+        agent.isStopped = true;
+        SetAnimationState(false);
         isActive = false;
+        Debug.Log($"NPC {gameObject.name} reached exit point and is destroyed.");
         Destroy(gameObject);
+    }
+    
+    public void TriggerMetamorphosis(bool toMonster)
+    {
+        // ?????? ????? ??????
+        // ????????: 
+        // normalModel.SetActive(!toMonster);
+        // horrorModel.SetActive(toMonster);
     }
 }

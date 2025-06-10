@@ -17,6 +17,9 @@ public class Quest
     public int goal;
     public QuestType questType;
     public QuestData NextQuest;
+    public delegate void ActionMethod();
+
+    public ActionMethod method;
 
     public Quest(QuestData D) { }
     
